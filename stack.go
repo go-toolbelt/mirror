@@ -29,7 +29,7 @@ type Frames struct {
 
 func (stack *Stack) Frames() Frames {
 	return Frames{
-		ptrs: stack.ptrs[:],
+		ptrs: stack.ptrs[:stack.n],
 	}
 }
 

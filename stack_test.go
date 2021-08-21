@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	packageName = "github.com/go-toolbelt/mirror_test"
-	fileName    = "stack_test.go"
+	packageName       = "github.com/go-toolbelt/mirror_test"
+	fileName          = "stack_test.go"
+	maxExpectedFrames = 100
 )
 
 func TestCapture(t *testing.T) {
@@ -64,6 +65,8 @@ func TestCapture_Func(t *testing.T) {
 		Line:      line,
 		Formatted: fmt.Sprintf("\tat %s.TestCapture_Func(%s:%d)", packageName, fileName, line),
 	}, frame)
+
+	assertFewerThanNFramesRemaining(t, maxExpectedFrames, frames)
 }
 
 func TestCapture_InnerFunc(t *testing.T) {
@@ -98,6 +101,8 @@ func TestCapture_InnerFunc(t *testing.T) {
 		Line:      line,
 		Formatted: fmt.Sprintf("\tat %s.TestCapture_InnerFunc(%s:%d)", packageName, fileName, line),
 	}, frame)
+
+	assertFewerThanNFramesRemaining(t, maxExpectedFrames, frames)
 }
 
 type exampleStruct struct{}
@@ -132,6 +137,8 @@ func TestCapture_StructMethod(t *testing.T) {
 		Line:      line,
 		Formatted: fmt.Sprintf("\tat %s.TestCapture_StructMethod(%s:%d)", packageName, fileName, line),
 	}, frame)
+
+	assertFewerThanNFramesRemaining(t, maxExpectedFrames, frames)
 }
 
 type exampleStructPtr struct{}
@@ -167,6 +174,8 @@ func TestCapture_StructPtrMethod(t *testing.T) {
 		Line:      line,
 		Formatted: fmt.Sprintf("\tat %s.TestCapture_StructPtrMethod(%s:%d)", packageName, fileName, line),
 	}, frame)
+
+	assertFewerThanNFramesRemaining(t, maxExpectedFrames, frames)
 }
 
 func TestBenchmark_Frames(t *testing.T) {
@@ -207,6 +216,22 @@ func assertTrue(t *testing.T, b bool) {
 func assertEqual(t *testing.T, expected mirror.Frame, actual mirror.Frame) {
 	if expected != actual {
 		t.Errorf("Frames not equal: expected %s actual %s", expected, actual)
+	}
+}
+
+// nolint: unparam
+func assertFewerThanNFramesRemaining(t *testing.T, n int, frames mirror.Frames) {
+	// count how many frames are left
+	i := 0
+	more := true
+	for more {
+		_, more = frames.Next()
+		i++
+
+		if i > n {
+			t.Error("over 100 remaining frames not expected")
+			break
+		}
 	}
 }
 
